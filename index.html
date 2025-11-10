@@ -3,9 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mini jeux</title>
+    <title>test maivana</title>
+    <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
 </head>
 <body>
-    <h1>hello odc</h1>
+<script>
+const config = {
+    type: Phaser.AUTO,
+    width: 500,
+    height: 600,
+    backgroundColor: '#242424',
+    physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 0 }, debug: false }
+    },
+    scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+let player1, player2, ball;
+let cursors, keys2;
+let gameOver = false;
+let gameOverText;
+let score1 = 0;
+let score2 = 0;
+let scoreText;
+let middleLineY;
+
+function preload() {
+    this.load.image('ballon', 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Basketball.png');
+}
+
+function create() {
+    // Ligne du milieu
+    middleLineY = config.height / 2;
+    this.add.line(0, middleLineY, 0, 0, config.width, 0, 0xffffff).setOrigin(0,0);
+
+    // Joueur 1 (bas)
+    player1 = this.add.rectangle(250, 500, 100, 15, 0x00ff00);
+    this.physics.add.existing(player1);
+    player1.body.setCollideWorldBounds(true);
+    player1.body.immovable = true;
+
+    // Joueur 2 (haut)
+    player2 = this.add.rectangle(250, 100, 100, 15, 0xff0000);
+    this.physics.add.existing(player2);
+    player2.body.setCollideWorldBounds(true);
+    player2.body.immovable = true;
+
+    // Ballon
+    ball = this.physics.add.image(250, 300, 'ballon');
+    ball.setDisplaySize(40, 40);
+    ball.setCollideWorldBounds(true);
+    ball.setBounce(1, 1);
+    ball.setVelocity(Phaser.Math.Between(-150, 150), 150);
+
+    // Collisions
+    this.physics.add.collider(ball, player1, () => { score1++; }, null, this);
+    this.physics.add.collider(ball, player2, () => { score2++; }, null, this);
+
+    // Clavier
+    cursors = this.input.keyboard.createCursorKeys();
+    keys2 = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.Z,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.Q,
+        right: Phaser.Input.Keyboard.KeyCodes.D
+    });
+
+    // Texte Game Over
+    gameOverText = this.add.text(150, 280, "GAME OVER", { font: "32px Arial", fill: "#ff0000" });
+    gameOverText.setVisible(false);
+
+    // Score affiché
+    scoreText = this.add.text(10, 10, `J1: 0 | J2: 0`, { font: "16px Arial", fill: "#ffffff" });
+}
+
+function update() {
+    if (gameOver) return;
+
+    // Joueur 1 flèches (ne peut pas dépasser la ligne du milieu)
+    player1.body.setVelocity(0);
+    if (cursors.left.isDown) player1.body.setVelocityX(-300);
+    if (cursors.right.isDown) player1.body.setVelocityX(300);
+    if (cursors.up.isDown && player1.y > middleLineY + player1.height/2) player1.body.setVelocityY(-300);
+    if (cursors.down.isDown) player1.body.setVelocityY(300);
+
+    // Joueur 2 ZQSD (ne peut pas dépasser la ligne du milieu)
+    player2.body.setVelocity(0);
+    if (keys2.left.isDown) player2.body.setVelocityX(-300);
+    if (keys2.right.isDown) player2.body.setVelocityX(300);
+    if (keys2.up.isDown) player2.body.setVelocityY(-300);
+    if (keys2.down.isDown && player2.y < middleLineY - player2.height/2) player2.body.setVelocityY(300);
+
+    // Mettre à jour le score visuel
+    scoreText.setText(`J1: ${score1} | J2: ${score2}`);
+
+    // Game Over si le ballon touche le haut ou le bas
+    if (ball.y <= ball.displayHeight / 2 || ball.y >= config.height - ball.displayHeight / 2) {
+        endGame(this);
+    }
+}
+
+function endGame(scene) {
+    gameOver = true;
+    ball.body.setVelocity(0, 0);
+    player1.body.setVelocity(0, 0);
+    player2.body.setVelocity(0, 0);
+    scene.physics.pause();
+    gameOverText.setVisible(true);
+}
+</script>
 </body>
 </html>
