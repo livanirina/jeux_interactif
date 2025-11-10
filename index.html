@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>test maivana</title>
     <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
 </head>
 <body>
 <script>
@@ -25,12 +25,12 @@ const game = new Phaser.Game(config);
 
 let player1, player2, ball;
 let cursors, keys2;
-let gameOver = false;
-let gameOverText;
-let score1 = 0;
-let score2 = 0;
+let score1 = 0, score2 = 0;
 let scoreText;
 let middleLineY;
+let maxScore = 5;
+let gameOver = false;
+let gameOverText;
 
 function preload() {
     this.load.image('ballon', 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Basketball.png');
@@ -58,11 +58,11 @@ function create() {
     ball.setDisplaySize(40, 40);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1, 1);
-    ball.setVelocity(Phaser.Math.Between(-150, 150), 150);
+    resetBall(this, Phaser.Math.Between(-150, 150), 150);
 
     // Collisions
-    this.physics.add.collider(ball, player1, () => { score1++; }, null, this);
-    this.physics.add.collider(ball, player2, () => { score2++; }, null, this);
+    this.physics.add.collider(ball, player1);
+    this.physics.add.collider(ball, player2);
 
     // Clavier
     cursors = this.input.keyboard.createCursorKeys();
@@ -73,47 +73,59 @@ function create() {
         right: Phaser.Input.Keyboard.KeyCodes.D
     });
 
-    // Texte Game Over
-    gameOverText = this.add.text(150, 280, "GAME OVER", { font: "32px Arial", fill: "#ff0000" });
-    gameOverText.setVisible(false);
-
     // Score affiché
     scoreText = this.add.text(10, 10, `J1: 0 | J2: 0`, { font: "16px Arial", fill: "#ffffff" });
+
+    // Game Over texte
+    gameOverText = this.add.text(120, 280, "GAME OVER", { font: "32px Arial", fill: "#ff0000" });
+    gameOverText.setVisible(false);
 }
 
 function update() {
     if (gameOver) return;
 
-    // Joueur 1 flèches (ne peut pas dépasser la ligne du milieu)
+    // Joueur 1 flèches
     player1.body.setVelocity(0);
     if (cursors.left.isDown) player1.body.setVelocityX(-300);
     if (cursors.right.isDown) player1.body.setVelocityX(300);
     if (cursors.up.isDown && player1.y > middleLineY + player1.height/2) player1.body.setVelocityY(-300);
     if (cursors.down.isDown) player1.body.setVelocityY(300);
 
-    // Joueur 2 ZQSD (ne peut pas dépasser la ligne du milieu)
+    // Joueur 2 ZQSD
     player2.body.setVelocity(0);
     if (keys2.left.isDown) player2.body.setVelocityX(-300);
     if (keys2.right.isDown) player2.body.setVelocityX(300);
     if (keys2.up.isDown) player2.body.setVelocityY(-300);
     if (keys2.down.isDown && player2.y < middleLineY - player2.height/2) player2.body.setVelocityY(300);
 
-    // Mettre à jour le score visuel
-    scoreText.setText(`J1: ${score1} | J2: ${score2}`);
-
-    // Game Over si le ballon touche le haut ou le bas
-    if (ball.y <= ball.displayHeight / 2 || ball.y >= config.height - ball.displayHeight / 2) {
-        endGame(this);
+    // Vérifie si un joueur rate le ballon
+    if (ball.y >= config.height - ball.displayHeight/2) {
+        // Joueur 2 marque
+        score2++;
+        checkWin(this);
+        resetBall(this, Phaser.Math.Between(-150, 150), -150);
+    } else if (ball.y <= ball.displayHeight/2) {
+        // Joueur 1 marque
+        score1++;
+        checkWin(this);
+        resetBall(this, Phaser.Math.Between(-150, 150), 150);
     }
+
+    // Met à jour le score affiché
+    scoreText.setText(`J1: ${score1} | J2: ${score2}`);
 }
 
-function endGame(scene) {
-    gameOver = true;
-    ball.body.setVelocity(0, 0);
-    player1.body.setVelocity(0, 0);
-    player2.body.setVelocity(0, 0);
-    scene.physics.pause();
-    gameOverText.setVisible(true);
+function resetBall(scene, vx, vy) {
+    ball.setPosition(config.width/2, config.height/2);
+    ball.setVelocity(vx, vy);
+}
+
+function checkWin(scene) {
+    if (score1 >= maxScore || score2 >= maxScore) {
+        gameOver = true;
+        scene.physics.pause();
+        gameOverText.setVisible(true);
+    }
 }
 </script>
 </body>
