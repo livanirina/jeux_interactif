@@ -1,0 +1,25 @@
+{
+  "name": "jeux_interactif",
+  "version": "1.0.0",
+  "description": "min jeux pendant la formation chez ODC",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livanirina/jeux_interactif.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/livanirina/jeux_interactif/issues"
+  },
+  "homepage": "https://github.com/livanirina/jeux_interactif#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
